@@ -1,0 +1,74 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# Rule files for optimization
+rule_files:
+  - /etc/prometheus/recording_rules.yml
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'certihash-metrics'
+    static_configs:
+      - targets: ['metrics-service:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    metric_relabel_configs:
+      # Keep only essential labels to reduce cardinality
+      - source_labels: [__name__]
+        regex: 'certihash_.*'
+        action: keep
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    
+  - job_name: 'litellm'
+    static_configs:
+      - targets: ['litellm:4000']
+    metrics_path: '/metrics'
+
+# Recording rules for optimization
+# These will be evaluated according to evaluation_interval and stored as new time series
+recording_rules:
+  groups:
+    - name: certihash_optimization
+      interval: 1m
+      rules:
+        # Precomputed transaction rates at different time windows
+        - record: certihash:transaction_rate_1m
+          expr: rate(certihash_transactions_total[1m])
+        
+        - record: certihash:transaction_rate_5m
+          expr: rate(certihash_transactions_total[5m])
+        
+        - record: certihash:transaction_rate_1h
+          expr: rate(certihash_transactions_total[1h])
+        
+        # Precomputed percentiles for processing time
+        - record: certihash:processing_time_p50
+          expr: histogram_quantile(0.5, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+        
+        - record: certihash:processing_time_p95
+          expr: histogram_quantile(0.95, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+        
+        - record: certihash:processing_time_p99
+          expr: histogram_quantile(0.99, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+        
+        # Precomputed app-specific metrics
+        - record: certihash:transactions_by_app
+          expr: sum by(app_id) (certihash_transactions_total)
+        
+        # Daily transaction count (for dashboard)
+        - record: certihash:daily_transactions
+          expr: sum(increase(certihash_transactions_total[24h]))
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093

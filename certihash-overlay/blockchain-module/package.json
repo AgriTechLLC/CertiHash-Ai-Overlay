@@ -1,0 +1,13 @@
+{
+  "name": "certihash-blockchain-module",
+  "version": "1.0.0",
+  "description": "BSV blockchain interaction module for CERTIHASH",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "bsv": "^1.5.6"
+  }
+}

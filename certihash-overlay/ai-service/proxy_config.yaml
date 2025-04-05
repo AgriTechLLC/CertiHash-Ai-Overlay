@@ -1,0 +1,98 @@
+model_list:
+  # General purpose model for NLP queries and conversational interactions
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: "${OPENAI_API_KEY}"
+      rpm: 10
+  
+  # Specialized model for anomaly detection with context optimization
+  - model_name: anomaly-detection
+    litellm_params:
+      model: openai/gpt-4-turbo
+      api_key: "${OPENAI_API_KEY}"
+      rpm: 15
+      # Custom system message for anomaly detection
+      default_system_message: "You are an AI specializing in blockchain transaction anomaly detection. Analyze BSV blockchain data from CERTIHASH for unusual patterns, unexpected changes in transaction volume, processing time anomalies, or security concerns. When analyzing data, consider historical patterns and explain your reasoning clearly with confidence levels for each detected anomaly."
+  
+  # Specialized model for predictive analytics
+  - model_name: predictive-analytics
+    litellm_params:
+      model: openai/gpt-4-turbo
+      api_key: "${OPENAI_API_KEY}"
+      rpm: 15
+      # Custom system message for predictive analytics
+      default_system_message: "You are an AI specializing in blockchain transaction forecasting and predictive analytics. Analyze historical CERTIHASH transaction data to forecast future trends, volume patterns, and capacity needs. Consider seasonal patterns, growth trends, and provide confidence intervals for your predictions."
+  
+  # Specialized model for dashboard generation and visualization
+  - model_name: dashboard-generator
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: "${OPENAI_API_KEY}"
+      rpm: 5
+      # Custom system message for dashboard creation
+      default_system_message: "You are an AI specializing in data visualization and Grafana dashboard creation. Analyze CERTIHASH metrics to create meaningful visualizations that provide insights into blockchain transaction patterns. Generate Grafana dashboard configurations in JSON format."
+  
+  # Specialized model for explainable AI
+  - model_name: explainable-ai
+    litellm_params:
+      model: anthropic/claude-3-opus-20240229
+      api_key: "${ANTHROPIC_API_KEY}"
+      rpm: 5
+      # Custom system message for AI explanations
+      default_system_message: "You are an AI specializing in explaining complex blockchain analytics in simple terms. Provide clear, concise explanations for anomaly detections, predictions, and other AI-generated insights. Use analogies, visualizations, and step-by-step reasoning to make concepts accessible to all users."
+  
+  # Vector search augmented model for domain-specific knowledge
+  - model_name: vector-augmented
+    litellm_params:
+      model: anthropic/claude-3-sonnet-20240229
+      api_key: "${ANTHROPIC_API_KEY}"
+      rpm: 10
+      # Custom system message for knowledge-specific responses
+      default_system_message: "You are an AI with specialized knowledge of the BSV blockchain, CERTIHASH platform, and blockchain metrics. Use your knowledge to provide accurate, domain-specific responses to user queries about transaction data, blockchain performance, and technical concepts."
+
+# Router settings for managing model assignments and rate limits
+router_settings:
+  # Redis for shared rate limiting
+  redis_host: "redis"
+  redis_password: "${REDIS_PASSWORD}" 
+  redis_port: 6379
+  
+  # Set routing strategy to least-busy to handle load balancing
+  routing_strategy: "least-busy"
+  
+  # Timeout settings
+  timeout: 30
+  
+  # Cache settings
+  cache: true
+  cache_params:
+    type: "redis"
+    host: "redis"
+    port: 6379
+    password: "${REDIS_PASSWORD}"
+    ttl: 300  # 5-minute cache for responses
+
+# Environment variable configuration
+environment_variables:
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+
+# Logging configuration
+litellm_settings:
+  success_callback: ["redis"]
+  drop_params: ["api_key"]
+  log_level: "INFO"
+  # Enable model fallbacks
+  fallbacks: [
+    {
+      "model": "openai/gpt-4o",
+      "fallback_model": "anthropic/claude-3-sonnet-20240229"
+    },
+    {
+      "model": "anthropic/claude-3-opus-20240229",
+      "fallback_model": "openai/gpt-4-turbo"
+    }
+  ]
+  # Maximum parallel requests
+  num_workers: 8

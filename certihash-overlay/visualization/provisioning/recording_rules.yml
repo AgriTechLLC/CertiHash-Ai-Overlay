@@ -1,0 +1,52 @@
+groups:
+  - name: certihash_recording_rules
+    interval: 1m
+    rules:
+      # Transaction rate by app
+      - record: certihash:app_transaction_rate_5m
+        expr: sum by(app_id) (rate(certihash_transactions_total[5m]))
+      
+      # Total transaction rate
+      - record: certihash:total_transaction_rate_5m
+        expr: sum(rate(certihash_transactions_total[5m]))
+      
+      # Processing time by percentile
+      - record: certihash:processing_time_p50
+        expr: histogram_quantile(0.5, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+      
+      - record: certihash:processing_time_p90
+        expr: histogram_quantile(0.9, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+      
+      - record: certihash:processing_time_p95
+        expr: histogram_quantile(0.95, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+      
+      - record: certihash:processing_time_p99
+        expr: histogram_quantile(0.99, sum(rate(certihash_tx_processing_time_bucket[5m])) by (le))
+      
+      # Hourly transaction count
+      - record: certihash:hourly_transactions
+        expr: sum(increase(certihash_transactions_total[1h]))
+      
+      # Daily transaction count
+      - record: certihash:daily_transactions
+        expr: sum(increase(certihash_transactions_total[24h]))
+      
+      # Weekly transaction count
+      - record: certihash:weekly_transactions
+        expr: sum(increase(certihash_transactions_total[7d]))
+      
+      # Daily transaction count by app
+      - record: certihash:daily_transactions_by_app
+        expr: sum by(app_id) (increase(certihash_transactions_total[24h]))
+      
+      # Average TPS over 5 minutes
+      - record: certihash:avg_tps_5m
+        expr: avg_over_time(certihash_tps[5m])
+      
+      # Max TPS over 5 minutes
+      - record: certihash:max_tps_5m
+        expr: max_over_time(certihash_tps[5m])
+      
+      # Min TPS over 5 minutes
+      - record: certihash:min_tps_5m
+        expr: min_over_time(certihash_tps[5m])
