@@ -1,0 +1,69 @@
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build output
+/build
+/dist
+/out
+/.next
+ui/build
+ui/dist
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.sqlite
+*.db
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Testing
+/coverage
+/test-results
+
+# Docker
+.docker-data
+
+# Cache
+.eslintcache
+.npm
+.cache
+
+# Temporary files
+/tmp
+/temp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
